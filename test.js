@@ -19,7 +19,12 @@ if(yrange.from==null)yrange.from=yrange.axis.min;if(yrange.to==null)yrange.to=yr
 
 (function($,e,t){"$:nomunge";var i=[],n=$.resize=$.extend($.resize,{}),a,r=false,s="setTimeout",u="resize",m=u+"-special-event",o="pendingDelay",l="activeDelay",f="throttleWindow";n[o]=200;n[l]=20;n[f]=true;$.event.special[u]={setup:function(){if(!n[f]&&this[s]){return false}var e=$(this);i.push(this);e.data(m,{w:e.width(),h:e.height()});if(i.length===1){a=t;h()}},teardown:function(){if(!n[f]&&this[s]){return false}var e=$(this);for(var t=i.length-1;t>=0;t--){if(i[t]==this){i.splice(t,1);break}}e.removeData(m);if(!i.length){if(r){cancelAnimationFrame(a)}else{clearTimeout(a)}a=null}},add:function(e){if(!n[f]&&this[s]){return false}var i;function a(e,n,a){var r=$(this),s=r.data(m)||{};s.w=n!==t?n:r.width();s.h=a!==t?a:r.height();i.apply(this,arguments)}if($.isFunction(e)){i=e;return a}else{i=e.handler;e.handler=a}}};function h(t){if(r===true){r=t||1}for(var s=i.length-1;s>=0;s--){var l=$(i[s]);if(l[0]==e||l.is(":visible")){var f=l.width(),c=l.height(),d=l.data(m);if(d&&(f!==d.w||c!==d.h)){l.trigger(u,[d.w=f,d.h=c]);r=t||true}}else{d=l.data(m);d.w=0;d.h=0}}if(a!==null){if(r&&(t==null||t-r<1e3)){a=e.requestAnimationFrame(h)}else{a=setTimeout(h,n[o]);r=false}}}if(!e.requestAnimationFrame){e.requestAnimationFrame=function(){return e.webkitRequestAnimationFrame||e.mozRequestAnimationFrame||e.oRequestAnimationFrame||e.msRequestAnimationFrame||function(t,i){return e.setTimeout(function(){t((new Date).getTime())},n[l])}}()}if(!e.cancelAnimationFrame){e.cancelAnimationFrame=function(){return e.webkitCancelRequestAnimationFrame||e.mozCancelRequestAnimationFrame||e.oCancelRequestAnimationFrame||e.msCancelRequestAnimationFrame||clearTimeout}()}})(jQuery,this);(function($){var options={};function init(plot){function onResize(){var placeholder=plot.getPlaceholder();if(placeholder.width()==0||placeholder.height()==0)return;plot.resize();plot.setupGrid();plot.draw()}function bindEvents(plot,eventHolder){plot.getPlaceholder().resize(onResize)}function shutdown(plot,eventHolder){plot.getPlaceholder().unbind("resize",onResize)}plot.hooks.bindEvents.push(bindEvents);plot.hooks.shutdown.push(shutdown)}$.plot.plugins.push({init:init,options:options,name:"resize",version:"1.0"})})(jQuery);
 
-var multiplier = (1.2);
+var multiplier = (1.2);     // 倍率
+var renpai_cnt = 5;         // 何連敗したら倍率を上げるか
+var lot_up_bairitu = 100;   // 連敗したときに上げる倍率
+var lot_up_make = 4;        // 負けた時に上げる倍率
+var win_cnt = 100;          // 何勝したら終了するか
+var start_lot = '0.00000002'; // スタートLot
 var counter=0;
 var lose_counter=0;
 $('#double_your_btc_payout_multiplier').val(multiplier);
@@ -47,7 +52,7 @@ function FreeBotCoin(obj){ // obj contains variables
 
         Object.freeze(privateVariables.site); // converting to "Const"
         var defaultValues = {
-            startValue: '0.00000002',
+            startValue: start_lot,
             mode: 'multiply',
             finalTime: 0, //Time in ms to stop betting
             stopPercentage: 0.0001,
@@ -72,9 +77,9 @@ function FreeBotCoin(obj){ // obj contains variables
 	                            	ref.count_lose++;
 	                                ref.total_loses++;
                                     lose_counter++;
-                                    if (lose_counter==3){
+                                    if (lose_counter==renpai_cnt){
                         var current = ref.__objects.betAmount.val();
-                        var multiply = (current * 100).toFixed(8);
+                        var multiply = (current * lot_up_bairitu).toFixed(8);
                         ref.__objects.betAmount.val(multiply);
 
                                     //setTimeout(function(){ location.reload(); }, 5); //Refresh page after win
@@ -120,7 +125,7 @@ function FreeBotCoin(obj){ // obj contains variables
 	                                ref.total_wins++;
                                     counter++;
                                     lose_counter=0;
-                                    if (counter==10000){
+                                    if (counter==win_cnt){
 
                                     setTimeout(function(){ location.reload(); }, 5); //Refresh page after win
                                     }
@@ -204,7 +209,7 @@ function FreeBotCoin(obj){ // obj contains variables
                     multiply:
                     function(){
                         var current = ref.__objects.betAmount.val();
-                        var multiply = (current * 6).toFixed(8);
+                        var multiply = (current * lot_up_make).toFixed(8);
                         ref.__objects.betAmount.val(multiply);
                     },
                     }
